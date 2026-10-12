@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.git/
+.idea/
+.vscode/
+*.md
+.env
+.env.example
+Dockerfile
+.dockerignore

@@ -1,0 +1,33 @@
+# ---- 排除本地环境与杂物，避免打进镜像 ----
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# 大文件 / 压缩包
+main.zip
+*.zip
+*.tar.gz
+
+# IDE / 版本控制
+.idea/
+.vscode/
+.git/
+.gitignore
+
+# 文档与本地脚本
+*.md
+*.log
+
+# Docker 自身配置
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# 敏感配置：通过 compose 注入环境变量，不打包进镜像
+.env
+
+# 子项目（各自独立构建上下文）
+external/
