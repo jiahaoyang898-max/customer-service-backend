@@ -1314,10 +1314,11 @@ async function copyBotText(botMsg) {
 }
 
 .workspace {
-  width: min(1760px, 100%);
+  width: min(2200px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr) 370px;
+  /* 比例制三栏：中栏恒为两侧的 2 倍以上，min 值保证缩放/窄窗口时侧栏内容不被挤坏 */
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 2.4fr) minmax(270px, 1.1fr);
   gap: 22px;
   position: relative;
   z-index: 1;
@@ -2274,6 +2275,9 @@ async function copyBotText(botMsg) {
   line-height: 1.5;
   color: var(--color-text-primary);
   font-weight: 600;
+  /* 侧栏改为比例宽度后，长标题/长单号在窄栏内换行而不是把金额挤出卡片 */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .card-amount {
@@ -2285,6 +2289,8 @@ async function copyBotText(botMsg) {
 .card-meta {
   font-size: 14px;
   color: var(--color-text-secondary);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .bot-text-row { display: flex; align-items: flex-start; gap: 8px; }
@@ -2480,9 +2486,9 @@ async function copyBotText(botMsg) {
   border-radius: 50%; background: var(--color-text-muted); border: 2px solid var(--color-surface);
 }
 .dh-avatar.online .dh-status-dot { background: var(--color-success); animation: pulse 2s infinite; }
-.dh-meta { display: flex; flex-direction: column; gap: 2px; }
+.dh-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .dh-name { font-size: 15px; font-weight: 600; color: var(--color-text-primary); }
-.dh-state { font-size: 12px; color: var(--color-text-secondary); }
+.dh-state { font-size: 12px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
 .dh-stage {
   position: relative; flex: 0 0 auto; width: 100%; aspect-ratio: 9 / 16;
   max-width: 100%; max-height: calc(100vh - 220px); margin: 0 auto;

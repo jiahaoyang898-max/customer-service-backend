@@ -42,11 +42,21 @@ class HistoryBuilder:
 
 
     @staticmethod
-    def _render_text_msg(text: str) -> str:
+    def _render_text_msg(text: str | None) -> str:
+        """
+        文本消息渲染：text 为 None 或空白时返回空串，不抛异常
+        """
+        if text is None:
+            return ""
         return text.strip()
 
     @classmethod
-    def _render_obj_msg(cls, object_msg: FocusedObject) -> str:
+    def _render_obj_msg(cls, object_msg: FocusedObject | None) -> str:
+        """
+        对象消息渲染：object 为 None 时返回空串，不抛异常
+        """
+        if object_msg is None:
+            return ""
         label = "订单对象" if object_msg.type == "order" else "商品对象"
         id = object_msg.id
         title = object_msg.title

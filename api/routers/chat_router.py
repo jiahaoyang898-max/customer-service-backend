@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from api.routers.dependencies import get_dialogue_service
 from api.schemas import ChatRequest, ChatResponse, ChatBotMessage, ChatObject, HistoryResponse, HistoryMessage
@@ -24,10 +24,23 @@ def _build_user_message(chat_request: ChatRequest) -> UserMessage:
     """
     将请求数据模型转换为领域数据模型 供业务使用
     """
+    # 显式三分支判定消息类型：有文本走 TEXT，否则有对象走 OBJECT，两者皆无直接 422
+    # （正常情况下 ChatRequest 的校验器已把这种请求拦成 422，这里是兜底防御）
+    has_text = chat_request.text is not None and chat_request.text.strip() != ""
+    if has_text:
+        message_type = MessageType.TEXT
+    elif chat_request.object is not None:
+        message_type = MessageType.OBJECT
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail="text 和 object 不能同时为空：请至少提供一条文本消息或一个聚焦对象",
+        )
+
     return UserMessage(
         sender_id=chat_request.sender_id,
         message_id=chat_request.message_id if chat_request.message_id else str(uuid.uuid4()),
-        type=MessageType.TEXT if chat_request.text else MessageType.OBJECT,
+        type=message_type,
         text=chat_request.text,
         object=FocusedObject(
             id=chat_request.object.id,

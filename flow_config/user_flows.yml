@@ -39,6 +39,26 @@ slots:
     label: 退款原因
     description: 申请退款的原因
 
+  logistics_found:
+    type: text
+    label: 是否查到物流
+    description: 物流查询结果标记，yes 表示查到物流记录，no 表示没查到
+
+  logistics_missing_reason:
+    type: text
+    label: 查不到物流的原因
+    description: 未查到物流的原因分类，not_shipped 表示订单尚未发货，query_failed 表示查询失败
+
+  refund_result:
+    type: text
+    label: 退款提交结果
+    description: 调用电商退款接口后的结果分类，success、duplicate、not_found 或 failed
+
+  refund_id:
+    type: text
+    label: 退款单号
+    description: 电商服务落库后返回的退款申请单号
+
 flows:
   onboarding:
     name: 欢迎引导
@@ -84,7 +104,7 @@ flows:
         type: action
         action: action_response
         args:
-          text: "订单{{ slots.order_number }}当前状态是：{{ slots.order_status }}。{{ slots.order_summary }}"
+          text: "订单{{ slots.order_number }}当前状态是：{{ slots.order_status }}。{% if slots.order_summary %}{{ slots.order_summary }}。{% endif %}"
         next: end
 
       - id: end
@@ -115,7 +135,7 @@ flows:
         type: action
         action: action_response
         args:
-          text: "订单{{ slots.order_number }}由{{ slots.logistics_company }}配送，物流单号是{{ slots.tracking_number }}。当前进度：{{ slots.logistics_status }}。"
+          text: "{% if slots.logistics_found == 'no' %}{% if slots.logistics_missing_reason == 'not_shipped' %}订单{{ slots.order_number }}还没发货，暂时没有物流信息，等商家发出后我再帮你查物流进度。{% else %}订单{{ slots.order_number }}的物流信息暂时查不到，你可以稍后再试，或者我帮你转接人工客服。{% endif %}{% else %}订单{{ slots.order_number }}由{{ slots.logistics_company }}配送，物流单号是{{ slots.tracking_number }}。当前进度：{{ slots.logistics_status }}。{% endif %}"
         next: end
 
       - id: end
@@ -142,15 +162,19 @@ flows:
         slot_name: refund_reason
         response:
           text: "请简单说一下退款原因。"
-        next: refund_submitted
+        next: submit_refund
 
-      - id: refund_submitted
+      - id: submit_refund
+        type: action
+        action: action_submit_refund
+        next: show_refund_result
+
+      - id: show_refund_result
         type: action
         action: action_response
         args:
-          text: "好的，订单{{ slots.order_number }}的退款申请已提交，原因是：{{ slots.refund_reason }}。后续会尽快为你处理。"
+          text: "{% if slots.refund_result == 'success' %}好的，订单{{ slots.order_number }}的退款申请已提交，原因是：{{ slots.refund_reason }}。{% if slots.refund_id %}退款单号是{{ slots.refund_id }}，{% endif %}后续会尽快为你处理。{% elif slots.refund_result == 'duplicate' %}订单{{ slots.order_number }}已经有一条正在处理中的退款申请，这次就不帮你重复提交了。你可以稍后查询退款进度，或者我帮你转接人工客服。{% elif slots.refund_result == 'not_found' %}订单号{{ slots.order_number }}没有查到，麻烦你核对一下订单号再发给我，我再帮你提交退款申请。{% else %}抱歉，订单{{ slots.order_number }}的退款申请这次没有提交成功，你可以稍后再试一次，或者我帮你转接人工客服处理。{% endif %}"
         next: end
-
 
       - id: end
         type: end

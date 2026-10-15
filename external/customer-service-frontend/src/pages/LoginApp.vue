@@ -9,7 +9,7 @@
  * 本组件为独立多页面入口，不改动原有 App.vue 的任何逻辑。
  */
 import { computed, onMounted, ref } from 'vue'
-import { accountExists, getRememberedAccount, login as submitLoginRequest, register as submitRegisterRequest } from './auth'
+import { accountExists, DEMO_ACCOUNT, getRememberedAccount, login as submitLoginRequest, normalize, register as submitRegisterRequest } from './auth'
 
 // ---------- 状态 ----------
 const mode = ref('login') // login | register
@@ -17,7 +17,24 @@ const submitting = ref(false)
 const notice = ref(null) // { type: 'success' | 'error', text }
 const errors = ref({})
 
-const loginForm = ref({ account: '', password: '', remember: true })
+/**
+ * 登录表单初始值（预填优先级）：
+ *   1. 「记住我」的账号就是内置演示账号（忽略大小写与首尾空格）→ 账号 / 密码都填满，
+ *      保证演示机「打开就能直接点登录」，不会因记住我而把密码清空
+ *   2. 「记住我」是别的账号 → 只预填账号，密码留空（不把别人存过的密码带出来）
+ *   3. 没有「记住我」→ 账号 / 密码均预填内置演示账号
+ * 仅在组件初始化时求值一次，不做定时器或 watch 回填，用户手动清空后不会再被填回。
+ */
+function initialLoginForm() {
+  const remembered = getRememberedAccount()
+  const demoForm = { account: DEMO_ACCOUNT.account, password: DEMO_ACCOUNT.password, remember: true }
+  if (!remembered) return demoForm
+  return normalize(remembered) === normalize(DEMO_ACCOUNT.account)
+    ? demoForm
+    : { account: remembered, password: '', remember: true }
+}
+
+const loginForm = ref(initialLoginForm())
 const registerForm = ref({ name: '', account: '', password: '', confirm: '', agree: false })
 
 const showLoginPassword = ref(false)
@@ -159,8 +176,7 @@ function delay(ms) {
 
 // ---------- 初始化 ----------
 onMounted(() => {
-  const remembered = getRememberedAccount()
-  if (remembered) loginForm.value.account = remembered
+  // 账号/密码预填已在 initialLoginForm() 中于组件初始化阶段完成，此处只处理注册锚点
   if (window.location.hash === '#register') mode.value = 'register'
 })
 </script>

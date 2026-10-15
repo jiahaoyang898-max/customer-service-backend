@@ -5,7 +5,9 @@
  * 登录 / 注册页采用浏览器本地存储实现一套可真实走通的账号闭环：
  *   · 用户注册后账号写入 localStorage，可立即用于登录
  *   · 登录成功后写入会话标记，跳转回工作台首页
- *   · 不内置任何预置 / 演示账号，需由用户自行注册
+ *   · 内置演示账号：账号 demo@example.com / 密码 demo123（演示用户），
+ *     任何浏览器打开登录页均可直接登录；若用户自行注册了同名为
+ *     demo@example.com 的账号，则以用户注册的为准（去重，不重复注入）
  * 若后续后端提供 /api/auth 接口，只需替换本文件中的实现即可。
  */
 
@@ -13,14 +15,19 @@ const ACCOUNTS_KEY = 'cs_accounts'
 const SESSION_KEY = 'cs_session'
 const REMEMBER_KEY = 'cs_remember_account'
 
-/** 读取已注册账号 */
+/** 内置演示账号（与用户注册的同名账号去重，注册的优先）；导出给登录页做预填，避免两处硬编码不一致 */
+export const DEMO_ACCOUNT = { account: 'demo@example.com', password: 'demo123', name: '演示用户', createdAt: 0 }
+
+/** 读取已注册账号（返回前合并内置演示账号） */
 export function loadAccounts() {
   try {
     const raw = localStorage.getItem(ACCOUNTS_KEY)
     const list = raw ? JSON.parse(raw) : []
-    return Array.isArray(list) ? list : []
+    const registered = Array.isArray(list) ? list : []
+    const hasDemo = registered.some((item) => normalize(item && item.account) === normalize(DEMO_ACCOUNT.account))
+    return hasDemo ? registered : [DEMO_ACCOUNT, ...registered]
   } catch {
-    return []
+    return [DEMO_ACCOUNT]
   }
 }
 
@@ -100,6 +107,7 @@ export function getRememberedAccount() {
   }
 }
 
-function normalize(value) {
+/** 账号归一化（去首尾空格 + 转小写）；导出给登录页复用，避免两处比较规则不一致 */
+export function normalize(value) {
   return String(value || '').trim().toLowerCase()
 }

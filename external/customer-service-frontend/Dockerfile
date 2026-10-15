@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # ============================================================
 # 电商客服前端（Vue 3 + Vite） → nginx 托管
-# 端口：8080（宿主机） → 80（容器）
+# 端口：8081（宿主机） → 80（容器）
 #   · 静态资源：/ 
 #   · 后端接口：/api/       → customer-service-backend:18082
 #   · 商城接口：/commerce/  → ecommerce-service:18081

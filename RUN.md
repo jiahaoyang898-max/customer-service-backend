@@ -15,7 +15,7 @@
 1. **环境自检** —— 检查 Docker 是否运行、`.env` 是否存在
 2. **构建镜像** —— 首次约 3~8 分钟（之后走缓存，几十秒）
 3. **启动容器** —— 等待所有服务真正就绪（含数据库初始化）
-4. **弹出浏览器** —— 自动打开登录页 `http://localhost:8080/login`
+4. **弹出浏览器** —— 自动打开登录页 `http://localhost:18080/login`
 
 停止全部服务：`双击 stop.bat`（保留数据）　|　彻底清库重来：在项目目录执行 `docker compose down -v`
 
@@ -28,15 +28,15 @@
 
 | 服务 | 容器名 | 宿主端口 | 容器端口 | 访问地址 |
 |------|--------|---------|---------|---------|
-| MySQL 数据库 | `cs-mysql` | 3306 | 3306 | `localhost:3306` |
+| MySQL 数据库 | `cs-mysql` | 13306 | 3306 | `127.0.0.1:13306` |
 | 电商业务服务 | `cs-ecommerce-service` | 18081 | 18081 | http://localhost:18081/docs |
 | 主客服后端 | `cs-backend` | 18082 | 18082 | http://localhost:18082/docs |
-| **前端页面** | `cs-frontend` | **8080** | 80 | **http://localhost:8080/login** |
+| **前端页面** | `cs-frontend` | **18080** | 80 | **http://localhost:18080/login** |
 
-**浏览器统一入口是 8080**，前端由 nginx 托管，并把接口反向代理到后端，因此不存在跨域问题：
+**浏览器统一入口是 18080**，前端由 nginx 托管，并把接口反向代理到后端，因此不存在跨域问题：
 
 ```
-浏览器 ──►  :8080 (nginx)
+浏览器 ──►  :18080 (nginx)
              ├── /              → 前端静态页面
              ├── /login         → 登录 / 注册页（独立入口）
              ├── /api/…         → 主客服后端 cs-backend:18082
@@ -53,7 +53,7 @@
 
 ## 三、登录 / 注册页
 
-启动后浏览器会自动打开 **http://localhost:8080/login**
+启动后浏览器会自动打开 **http://localhost:18080/login**
 
 | 项目 | 说明 |
 |------|------|
@@ -81,7 +81,7 @@
 
 - 左侧小圆牌显示当前登录用户的**昵称 + 账号**
 - 点击 **「退出登录」** → 弹出二次确认 → 清除本地登录态 → 自动跳回登录页 `/login`
-- 退出后若再手动访问 `http://localhost:8080/`，会被自动重定向到登录页，需重新登录
+- 退出后若再手动访问 `http://localhost:18080/`，会被自动重定向到登录页，需重新登录
 
 > **关于认证实现**：本次要求「保持原有代码不动」，而后端暂未提供用户认证接口，
 > 因此登录 / 注册采用**浏览器本地存储**实现了一套真实可走通的闭环（注册后即可登录，不预置任何账号）。
@@ -115,7 +115,7 @@ docker compose down -v            # 同时删除数据卷（数据库会重新�
 接口自测：
 
 ```bash
-curl http://localhost:8080/health                  # 后端健康检查
+curl http://localhost:18080/health                  # 后端健康检查
 curl "http://localhost:18081/users/u1001/orders"   # 订单列表
 curl -X POST http://localhost:18082/api/chat \
      -H "Content-Type: application/json" \
@@ -158,7 +158,7 @@ curl -X POST http://localhost:18082/api/chat \
 **1. 启动时报端口被占用（`port is already allocated`）**
 
 ```bash
-netstat -ano | findstr ":3306 :8080 :18081 :18082"
+netstat -ano | findstr ":13306 :18080 :18081 :18082"
 # 记下最后一列的 PID，结束占用进程：
 taskkill /PID <PID> /F
 ```

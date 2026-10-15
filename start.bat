@@ -2,7 +2,7 @@
 rem ============================================================
 rem  E-commerce CS - one click start (double click me)
 rem  Builds and starts ALL services with Docker, then opens
-rem  the browser automatically at http://localhost:8080
+rem  the browser automatically at http://localhost:18080
 rem ============================================================
 chcp 65001 >nul
 setlocal

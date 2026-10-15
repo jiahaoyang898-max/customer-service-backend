@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class ChatObject(BaseModel):
@@ -18,6 +18,17 @@ class ChatRequest(BaseModel):
     message_id: str |None = None
     text: str |None = None
     object: ChatObject |None = None
+
+    @model_validator(mode="after")
+    def _check_message_payload(self) -> "ChatRequest":
+        """
+        text 与 object 至少要有一个非空，否则请求非法。
+        校验失败交给 FastAPI 返回 422，避免下游按 OBJECT 处理 None 对象导致 500。
+        """
+        has_text = self.text is not None and self.text.strip() != ""
+        if not has_text and self.object is None:
+            raise ValueError("text 和 object 不能同时为空：请至少提供一条文本消息或一个聚焦对象")
+        return self
 
 class ChatBotMessage(BaseModel):
     """

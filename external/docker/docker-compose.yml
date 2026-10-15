@@ -8,7 +8,9 @@ services:
       MYSQL_USER: itwwy
       MYSQL_PASSWORD: 123456
     ports:
-      - "3306:3306"
+      # 宿主侧绑 127.0.0.1:13306，与根 compose 保持一致，
+      # 避免与本机 data-agent 等项目的 3306 冲突
+      - "127.0.0.1:13306:3306"
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
